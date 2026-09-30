@@ -19,6 +19,7 @@ const { spawnSync } = require('child_process');
 const root = path.join(__dirname, '..');
 const rootFwd = root.replace(/\\/g, '/');
 const TEMPLATE = 'hooks/cursor-hooks.json';
+const { isPonytailHook } = require('../scripts/cursor-hooks');
 
 // Keep host detection and config resolution deterministic whatever shell the
 // suite runs in (a Cursor hook env, a Codex shell, a machine-wide default mode).
@@ -84,6 +85,16 @@ function writeFlag(c, mode) {
   fs.mkdirSync(path.dirname(c.flag), { recursive: true });
   fs.writeFileSync(c.flag, mode);
 }
+
+
+test('ponytail hook detection stays bounded on adversarial command text', () => {
+  assert.equal(isPonytailHook({ command: 'node "/tmp/hooks/ponytail-activate.js"' }), true);
+  assert.equal(isPonytailHook({ command: 'node "/tmp/hooks/not-ponytail.js"' }), false);
+  assert.equal(
+    isPonytailHook({ command: 'node "' + 'ponytail-'.repeat(20000) + 'x"' }),
+    false,
+  );
+});
 
 test('cursor hooks template is a valid hooks.json with the two events that can inject context', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, TEMPLATE), 'utf8'));
