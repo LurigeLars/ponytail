@@ -25,6 +25,12 @@ assert.equal(
   '## kept',
   'frontmatter stripping must stay linear on large metadata blocks',
 );
+const adversarialExample = '- ' + ' '.repeat(100000) + 'not-a-mode-without-colon';
+assert.equal(
+  filterSkillBodyForMode(adversarialExample, 'full'),
+  adversarialExample,
+  'worked-example detection must stay bounded when no colon is present',
+);
 
 function run(script, env, input = '') {
   return spawnSync(process.execPath, [path.join(root, 'hooks', script)], {
