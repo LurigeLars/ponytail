@@ -76,8 +76,16 @@ if (!isCodex && !isCopilot && !isCursor) try {
   // (and implicitly declined) the statusline setup offer. Repeating it every
   // session start turns a helpful hint into a nag.
   const nudgeFlagPath = path.join(claudeDir, '.ponytail-statusline-nudged');
-  if (!hasStatusline && !fs.existsSync(nudgeFlagPath)) {
-    try { fs.writeFileSync(nudgeFlagPath, ''); } catch (e) { /* best-effort */ }
+  let shouldNudge = !hasStatusline;
+  if (shouldNudge) {
+    try {
+      const fd = fs.openSync(nudgeFlagPath, 'wx');
+      fs.closeSync(fd);
+    } catch (e) {
+      shouldNudge = false;
+    }
+  }
+  if (shouldNudge) {
     const isWindows = process.platform === 'win32';
     const scriptName = isWindows ? 'ponytail-statusline.ps1' : 'ponytail-statusline.sh';
     const scriptPath = path.join(__dirname, scriptName);

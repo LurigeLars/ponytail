@@ -10,7 +10,11 @@ const SKILL_PATH = path.join(__dirname, '..', 'skills', 'ponytail', 'SKILL.md');
 
 function filterSkillBodyForMode(body, mode) {
   const effectiveMode = normalizeMode(mode) || DEFAULT_MODE;
-  const withoutFrontmatter = String(body || '').replace(/^---[\s\S]*?---\s*/, '');
+  let withoutFrontmatter = String(body || '');
+  if (withoutFrontmatter.startsWith('---')) {
+    const end = withoutFrontmatter.indexOf('\n---', 3);
+    if (end >= 0) withoutFrontmatter = withoutFrontmatter.slice(end + 4).trimStart();
+  }
 
   // Only the intensity table rows and worked examples are mode-specific, and
   // both are keyed by a mode name (lite/full/ultra). A bullet whose label is
