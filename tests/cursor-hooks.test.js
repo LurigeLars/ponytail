@@ -86,9 +86,12 @@ function writeFlag(c, mode) {
   fs.writeFileSync(c.flag, mode);
 }
 
-test('ponytail hook detection stays bounded on adversarial command text', () => {
+test('ponytail hook detection is path-scoped and stays bounded on adversarial command text', () => {
   assert.equal(isPonytailHook({ command: 'node "/tmp/hooks/ponytail-activate.js"' }), true);
+  assert.equal(isPonytailHook({ command: 'node "C:\\tmp\\hooks\\ponytail-mode-tracker.js"' }), true);
   assert.equal(isPonytailHook({ command: 'node "/tmp/hooks/not-ponytail.js"' }), false);
+  assert.equal(isPonytailHook({ command: 'node "/tmp/hooks/my-ponytail-logger.js"' }), false);
+  assert.equal(isPonytailHook({ command: 'node "/tmp/ponytail-activate.js"' }), false);
   assert.equal(
     isPonytailHook({ command: 'node "' + 'ponytail-'.repeat(20000) + 'x"' }),
     false,
@@ -241,6 +244,7 @@ test('installer merges into an existing ~/.cursor/hooks.json and leaves unrelate
     hooks: {
       sessionStart: [{ command: './hooks/their-session.sh' }],
       afterFileEdit: [{ command: './hooks/format.sh', matcher: 'Write' }],
+      stop: [{ command: 'node "./hooks/my-ponytail-logger.js"' }],
     },
   };
   fs.writeFileSync(file, JSON.stringify(theirs));
@@ -251,6 +255,7 @@ test('installer merges into an existing ~/.cursor/hooks.json and leaves unrelate
   let config = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.equal(config.version, 1);
   assert.deepEqual(config.hooks.afterFileEdit, theirs.hooks.afterFileEdit);
+  assert.deepEqual(config.hooks.stop, theirs.hooks.stop, 'similarly named user hook must survive install');
   assert.equal(config.hooks.sessionStart[0].command, './hooks/their-session.sh', 'their sessionStart hook stays first and intact');
   assert.equal(config.hooks.sessionStart.length, 2);
   assert.deepEqual(config.hooks.sessionStart[1], { command: `node "${rootFwd}/hooks/ponytail-activate.js"`, timeout: 5 });
