@@ -1,0 +1,47 @@
+name: Upstream fork watch
+
+on:
+  schedule:
+    - cron: "37 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      UPSTREAM_REPO: DietrichGebert/ponytail
+      UPSTREAM_BRANCH: main
+      LOCAL_BRANCH: main
+    steps:
+      - name: Compare fork with upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          upstream_owner="${UPSTREAM_REPO%%/*}"
+          compare="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${upstream_owner}:${UPSTREAM_BRANCH}...${LOCAL_BRANCH}")"
+          local_ahead="$(jq -r '.ahead_by' <<<"$compare")"
+          local_behind="$(jq -r '.behind_by' <<<"$compare")"
+          status="$(jq -r '.status' <<<"$compare")"
+          compare_url="https://github.com/${GITHUB_REPOSITORY}/compare/${upstream_owner}:${UPSTREAM_BRANCH}...${LOCAL_BRANCH}"
+
+          {
+            echo "## Upstream fork watch"
+            echo
+            echo "- upstream: \`${UPSTREAM_REPO}@${UPSTREAM_BRANCH}\`"
+            echo "- local: \`${GITHUB_REPOSITORY}@${LOCAL_BRANCH}\`"
+            echo "- upstream-only commits: \`${local_behind}\`"
+            echo "- local-only commits: \`${local_ahead}\`"
+            echo "- compare status: \`${status}\`"
+            echo "- compare: ${compare_url}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if (( local_behind > 0 )); then
+            echo "::warning title=Upstream fork drift::${local_behind} upstream-only commits require review. Merge/rebase upstream; do not discard local commits."
+          fi
