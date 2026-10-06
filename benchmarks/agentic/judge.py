@@ -40,11 +40,12 @@ RUBRIC = (
 
 def load_key():
     try:
-        for line in (ROOT / ".env").read_text(encoding="utf-8").splitlines():
-            if line.startswith("ANTHROPIC_API_KEY=") and len(line) > 18:
-                return line.split("=", 1)[1].strip()
-    except Exception:
-        pass
+        lines = (ROOT / ".env").read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError):
+        lines = []
+    for line in lines:
+        if line.startswith("ANTHROPIC_API_KEY=") and len(line) > 18:
+            return line.split("=", 1)[1].strip()
     return os.environ.get("ANTHROPIC_API_KEY")
 
 def _is_test(name):
@@ -75,6 +76,7 @@ def judge_call(task_prompt, files, key, retries=3, system=RUBRIC):
         except Exception as e:
             if attempt == retries - 1: return f'{{"error": "{str(e)[:120]}"}}'
             time.sleep(2 * (attempt + 1))
+    return None
 
 def parse_score(text):
     m = re.search(r"\{.*\}", text or "", re.S)
