@@ -17,14 +17,17 @@ const ROOT = path.join(__dirname, '..');
 const TEMPLATE = path.join(ROOT, 'hooks', 'cursor-hooks.json');
 function isPonytailHook(entry) {
   if (!entry || typeof entry.command !== 'string') return false;
-  const marker = 'ponytail-';
-  const start = entry.command.lastIndexOf(marker);
+  const command = entry.command.replace(/\\/g, '/');
+  const marker = '/hooks/ponytail-';
+  const start = command.lastIndexOf(marker);
   if (start < 0) return false;
   const nameStart = start + marker.length;
-  const end = entry.command.indexOf('.js', nameStart);
+  const end = command.indexOf('.js', nameStart);
   if (end < 0) return false;
-  const name = entry.command.slice(nameStart, end);
-  return name.length > 0 && /^[A-Za-z0-9_-]+$/.test(name);
+  const name = command.slice(nameStart, end);
+  if (!name || !/^[A-Za-z0-9_-]+$/.test(name)) return false;
+  const boundary = command[end + 3];
+  return boundary === undefined || boundary === '"' || boundary === "'" || /\s/.test(boundary);
 }
 
 function hooksPath(scope) {
