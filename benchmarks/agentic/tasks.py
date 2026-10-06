@@ -433,7 +433,7 @@ def score_fixture(workdir):
     fm = workdir / "_fixture_files.json"
     if fm.exists():
         try: fixture = set(json.loads(fm.read_text(encoding="utf-8")))
-        except Exception: pass
+        except (OSError, ValueError, TypeError): fixture = set()
     new = [p for p in workdir.rglob("*")
            if p.is_file() and p.suffix in {".tsx", ".ts", ".jsx", ".js"}
            and "node_modules" not in p.parts and not p.name.startswith(("_", "."))
@@ -713,7 +713,9 @@ def score_trace_transfer(workdir):
     try:
         mod.balances.clear(); mod.balances.update({"a": 100})
         try: withdraw("a", 150)            # the un-named caller: must be guarded too
-        except Exception: pass
+        except Exception:
+            # Any rejection exception is acceptable here; the benchmark verifies the balance stayed intact.
+            pass
         traced = (mod.balances["a"] == 100)
     except Exception:
         traced = False

@@ -58,8 +58,8 @@ def _default_mode() -> str:
         file_mode = _normalize_runtime_mode(data.get("defaultMode"))
         if file_mode:
             return file_mode
-    except Exception:
-        pass
+    except (OSError, ValueError, AttributeError):
+        return DEFAULT_MODE
     return DEFAULT_MODE
 
 

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { createHash } = require('crypto');
-const { getClaudeDir, getConfigDir } = require('./ponytail-config');
+const { getClaudeDir } = require('./ponytail-config');
 
 const STATE_FILE = '.ponytail-active';
 

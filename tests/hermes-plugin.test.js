@@ -12,7 +12,6 @@ const { spawnSync } = require('child_process');
 const { filterSkillBodyForMode } = require('../hooks/ponytail-instructions');
 
 const commands = ['ponytail', 'ponytail-review', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help'];
-const skillCommands = commands.filter((name) => name !== 'ponytail');
 
 const root = path.join(__dirname, '..');
 
