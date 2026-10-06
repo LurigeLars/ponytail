@@ -69,8 +69,9 @@ function python() {
 
 // Write content to a temp file, return the path.
 function tmpFile(ext, content) {
-  const p = path.join(os.tmpdir(), `ponytail-bench-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  fs.writeFileSync(p, content);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-bench-'));
+  const p = path.join(dir, `input${ext}`);
+  fs.writeFileSync(p, content, { mode: 0o600 });
   return p;
 }
 
@@ -255,7 +256,6 @@ else:
 
     // Structural check for rate limiting: must have some form of counter/time tracking.
     const src = code.code;
-    const hasTimeTracking = /time\.|datetime|asyncio/.test(src);
     const hasLimitLogic = /limit|max_requests|rate|429|Too Many|HTTPException|RateLimiter/.test(src);
     const hasFastAPI = /fastapi|FastAPI|app\s*=|@app\./.test(src);
 
