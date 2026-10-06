@@ -127,7 +127,7 @@ def code_stats(workdir: Path, selfcheck_as_test: bool = False):
     fm = workdir / "_fixture_files.json"
     if fm.exists():
         try: fixture = set(json.loads(fm.read_text(encoding="utf-8")))
-        except Exception: pass
+        except (OSError, ValueError, TypeError): fixture = set()
     def _rel(p): return str(p.relative_to(workdir)).replace("\\", "/")
     files = [p for p in workdir.rglob("*") if p.is_file() and p.suffix in CODE_EXT
              and "__pycache__" not in p.parts and "node_modules" not in p.parts
@@ -271,7 +271,8 @@ def score_workspace(task_id, arm, model, workdir: Path):
                     "out_tokens": u.get("output_tokens"), "in_tokens": u.get("input_tokens"),
                     "cache_tokens": (u.get("cache_read_input_tokens") or 0) + (u.get("cache_creation_input_tokens") or 0)}
             result_text = j.get("result", "")
-        except Exception: pass
+        except (OSError, ValueError, TypeError, AttributeError):
+            meta, result_text = {}, ""
     surgical = not TASKS[task_id].get("open") and not TASKS[task_id].get("fixture")
     stats = git_diff_stats(workdir) if TASKS[task_id].get("fixture") else code_stats(workdir, selfcheck_as_test=surgical)
     # open/explain tasks answer in the chat, not a file. If no source file was written, count the
@@ -340,7 +341,7 @@ def run_cell(task_id, arm, model, workdir: Path):
             except subprocess.TimeoutExpired:
                 _tree_kill(proc)
                 try: proc.wait(timeout=15)
-                except Exception: pass
+                except subprocess.TimeoutExpired: _tree_kill(proc)
                 se.write(f"\n[KILLED after {CELL_TIMEOUT}s timeout]".encode())
     except Exception as e:
         out_path.write_text(json.dumps({"error": str(e)[:300]}), encoding="utf-8")
@@ -474,6 +475,7 @@ def main():
     (out_dir / "summary.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
     print_table(rows)
     print(f"\nwrote {out_dir}/results.json + summary.json ({len(results)} cells)")
+    return None
 
 if __name__ == "__main__":
     main()
