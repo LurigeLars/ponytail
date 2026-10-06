@@ -424,7 +424,8 @@ def main():
     if args.selftest:
         sys.exit(1 if selftest() else 0)
     if args.rescore:
-        return rescore(args.rescore)
+        rescore(args.rescore)
+        return None
     if selftest():
         sys.exit("instruments broken; refusing to spend on the API")
 
