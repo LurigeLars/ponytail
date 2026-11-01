@@ -18,6 +18,15 @@ updates:
           - "minor"
           - "patch"
 
+      # Group security alerts separately; breaking major fixes remain individual.
+      root-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
