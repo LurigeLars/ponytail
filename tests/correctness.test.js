@@ -86,6 +86,30 @@ test('debounce: bare unfenced arrow function is still scored (#65)', () => {
   assert.equal(result.pass, true);
 });
 
+
+test('temporary benchmark directories are removed after scoring', () => {
+  const fs = require('node:fs');
+  const original = fs.mkdtempSync;
+  const created = [];
+  fs.mkdtempSync = (...args) => {
+    const dir = original(...args);
+    created.push(dir);
+    return dir;
+  };
+  try {
+    const result = check(
+      'Add debounce to a search input in vanilla JavaScript.',
+      'javascript',
+      'function debounce(fn, ms) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; }',
+    );
+    assert.equal(result.pass, true);
+  } finally {
+    fs.mkdtempSync = original;
+  }
+  assert.ok(created.length > 0, 'the checker must have created a temporary directory');
+  for (const dir of created) assert.equal(fs.existsSync(dir), false, dir + ' was not cleaned up');
+});
+
 // --- CSV sum ---
 
 test('csv: correct pandas one-liner passes', () => {
