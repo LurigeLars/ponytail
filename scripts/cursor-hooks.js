@@ -19,7 +19,7 @@ function isPonytailHook(entry) {
   if (!entry || typeof entry.command !== 'string') return false;
   const command = entry.command.replace(/\\/g, '/');
   const marker = '/hooks/ponytail-';
-  const start = command.lastIndexOf(marker);
+  const start = command.indexOf(marker);
   if (start < 0) return false;
   const nameStart = start + marker.length;
   const end = command.indexOf('.js', nameStart);
@@ -45,8 +45,19 @@ function readConfig(file) {
   } catch (e) {
     if (e.code !== 'ENOENT') throw e;
   }
-  if (!config || typeof config !== 'object' || Array.isArray(config)) config = {};
-  if (!config.hooks || typeof config.hooks !== 'object' || Array.isArray(config.hooks)) config.hooks = {};
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    throw new TypeError('hooks.json must contain a configuration object');
+  }
+  if (config.hooks === undefined) config.hooks = {};
+  if (!config.hooks || typeof config.hooks !== 'object' || Array.isArray(config.hooks)) {
+    throw new TypeError('hooks.json hooks must be an object of event arrays');
+  }
+  for (const [event, entries] of Object.entries(config.hooks)) {
+    if (!Array.isArray(entries) || entries.some((entry) => !entry || typeof entry !== 'object' ||
+        Array.isArray(entry) || typeof entry.command !== 'string')) {
+      throw new TypeError(`hooks.json ${event} must contain command entries`);
+    }
+  }
   return config;
 }
 
