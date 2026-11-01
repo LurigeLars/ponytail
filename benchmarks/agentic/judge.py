@@ -89,6 +89,7 @@ def judge_call(task_prompt, files, key, retries=3, system=RUBRIC, model=JUDGE_MO
         except Exception as e:
             if attempt == retries - 1: return f'{{"error": "{str(e)[:120]}"}}'
             time.sleep(2 * (attempt + 1))
+    return None
 
 def parse_score(text):
     m = re.search(r"\{.*\}", text or "", re.S)
