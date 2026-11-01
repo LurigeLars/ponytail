@@ -47,6 +47,13 @@ const displayName = (slug) =>
 const quote = (a) => (/[^\w./-]/.test(a) ? `"${a}"` : a);
 
 const passthrough = process.argv.slice(2);
+// A Windows npm CLI is normally a .cmd shim. Only Windows needs a shell;
+// refuse shell metacharacters in all inputs before publishing any skill.
+if (process.platform === 'win32' &&
+    [...slugs, version, ...passthrough].some(arg => !/^[A-Za-z0-9 _./:=,-]+$/.test(arg))) {
+  console.error('Refusing to publish: unsafe Windows command argument.');
+  process.exit(1);
+}
 const extra = passthrough.length ? ` (${passthrough.join(' ')})` : '';
 console.log(`Publishing ${slugs.length} skills to ClawHub at version ${version}${extra}:`);
 
@@ -61,8 +68,10 @@ for (const slug of slugs) {
   ];
   const cmdline = args.map(quote).join(' ');
   console.log(`\n$ ${cmdline}`);
-  const res = spawnSync(args[0], args.slice(1), { stdio: 'inherit', cwd: root });
-  if (res.status !== 0) {
+  const res = process.platform === 'win32'
+    ? spawnSync(cmdline, { stdio: 'inherit', cwd: root, shell: true })
+    : spawnSync(args[0], args.slice(1), { stdio: 'inherit', cwd: root });
+  if (res.error || res.status !== 0) {
     console.error(
       `\nPublish failed for "${slug}" (exit ${res.status}). ` +
       `Check that the clawhub CLI is installed and you have run \`clawhub login\`, then re-run. ` +

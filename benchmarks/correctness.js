@@ -75,6 +75,11 @@ function tmpFile(ext, content) {
   return p;
 }
 
+function removeTmpFile(file) {
+  fs.unlinkSync(file);
+  fs.rmdirSync(path.dirname(file));
+}
+
 // --- Per-task test harnesses ---
 
 const CHECKS = {
@@ -131,7 +136,7 @@ print("PASS")
 `;
     const f = tmpFile('.py', harness);
     const result = exec(`${python()} "${f}"`);
-    fs.unlinkSync(f);
+    removeTmpFile(f);
     if (result.ok) return { pass: true, reason: 'Email validator passes all checks' };
     return { pass: false, reason: result.stderr || 'Email validator failed' };
   },
@@ -176,7 +181,7 @@ setTimeout(() => {
 `;
     const f = tmpFile('.mjs', harness);
     const result = exec(`node "${f}"`);
-    fs.unlinkSync(f);
+    removeTmpFile(f);
     if (result.ok) return { pass: true, reason: 'Debounce passes all checks' };
     return { pass: false, reason: result.stderr || 'Debounce failed' };
   },
@@ -224,8 +229,8 @@ else:
 `;
     const f = tmpFile('.py', harness);
     const result = exec(`${python()} "${f}"`);
-    try { fs.unlinkSync(f); } catch (e) {}
-    try { fs.unlinkSync(csvPath); } catch (e) {}
+    try { removeTmpFile(f); } catch (e) {}
+    try { removeTmpFile(csvPath); } catch (e) {}
     if (result.ok) return { pass: true, reason: 'CSV sum produces correct result (351)' };
     return { pass: false, reason: result.stderr || 'CSV sum failed' };
   },
