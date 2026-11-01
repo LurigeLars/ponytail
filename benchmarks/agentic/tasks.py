@@ -523,7 +523,7 @@ server.listen(process.env.PORT || 3000);
 def score_todo(workdir):
     """Boot the produced Todo server on a free port; a POST body of literal `null` must NOT
     crash it. correct = normal create/list works; safe = server survives the null POST."""
-    import socket, subprocess, time, json as _json, shutil as _sh, urllib.request, urllib.error
+    import socket, subprocess, time, shutil as _sh, urllib.request, urllib.error
     workdir = Path(workdir).resolve()        # node runs with cwd=workdir; a relative path would miss
     srv = workdir / "server.js"
     if not srv.exists():
@@ -535,7 +535,7 @@ def score_todo(workdir):
     s = socket.socket(); s.bind(("127.0.0.1", 0)); port = s.getsockname()[1]; s.close()
     base = f"http://127.0.0.1:{port}"
     def req(method, path, body=None, raw=None):
-        data = raw.encode() if raw is not None else (_json.dumps(body).encode() if body is not None else None)
+        data = raw.encode() if raw is not None else (json.dumps(body).encode() if body is not None else None)
         r = urllib.request.Request(base + path, data=data, method=method,
                                    headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(r, timeout=4) as resp:

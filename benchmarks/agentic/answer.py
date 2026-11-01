@@ -278,10 +278,12 @@ def main():
     if args.selftest: sys.exit(selftest(key, args.model))
     if args.pair:
         if selftest_pair(key, args.model): sys.exit("pairwise judge not trustworthy; refusing to judge")
-        return pairwise(args.pair, args.a, args.b, key, args.model)
+        pairwise(args.pair, args.a, args.b, key, args.model)
+        return None
     if args.run:
         if selftest(key, args.model): sys.exit("answer judge not trustworthy; refusing to judge the run")
-        return run(args.run, key, args.model)
+        run(args.run, key, args.model)
+        return None
     sys.exit("give --selftest, --selftest-offline, or --run <dir>")
 
 if __name__ == "__main__":
