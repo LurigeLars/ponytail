@@ -251,7 +251,6 @@ test('installer merges into an existing ~/.cursor/hooks.json and leaves unrelate
       sessionStart: [{ command: './hooks/their-session.sh' }],
       afterFileEdit: [{ command: './hooks/format.sh', matcher: 'Write' }],
       stop: [{ command: 'node "./hooks/my-ponytail-logger.js"' }],
-      stop: [{ command: 'node "./hooks/my-ponytail-logger.js"' }],
     },
   };
   fs.writeFileSync(file, JSON.stringify(theirs));
@@ -262,7 +261,6 @@ test('installer merges into an existing ~/.cursor/hooks.json and leaves unrelate
   let config = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.equal(config.version, 1);
   assert.deepEqual(config.hooks.afterFileEdit, theirs.hooks.afterFileEdit);
-  assert.deepEqual(config.hooks.stop, theirs.hooks.stop, 'similarly named user hook must survive install');
   assert.deepEqual(config.hooks.stop, theirs.hooks.stop, 'similarly named user hook must survive install');
   assert.equal(config.hooks.sessionStart[0].command, './hooks/their-session.sh', 'their sessionStart hook stays first and intact');
   assert.equal(config.hooks.sessionStart.length, 2);
